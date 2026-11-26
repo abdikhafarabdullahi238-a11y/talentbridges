@@ -1,0 +1,5 @@
+CREATE POLICY upload_own_cv ON storage.objects FOR INSERT TO authenticated WITH CHECK(bucket_id='professional-cvs' AND (storage.foldername(name))[1]=auth.uid()::text);
+CREATE POLICY read_own_cv ON storage.objects FOR SELECT TO authenticated USING(bucket_id='professional-cvs' AND (storage.foldername(name))[1]=auth.uid()::text);
+CREATE POLICY delete_own_cv ON storage.objects FOR DELETE TO authenticated USING(bucket_id='professional-cvs' AND (storage.foldername(name))[1]=auth.uid()::text);
+CREATE POLICY employer_visible_cv ON storage.objects FOR SELECT TO authenticated USING(bucket_id='professional-cvs' AND public.has_role(auth.uid(),'employer') AND EXISTS(SELECT 1 FROM public.profiles p WHERE p.id::text=(storage.foldername(name))[1] AND p.visible_to_employers));
+CREATE POLICY requester_profile_for_mentor ON public.profiles FOR SELECT TO authenticated USING(EXISTS(SELECT 1 FROM public.mentor_requests r JOIN public.mentors m ON m.id=r.mentor_id WHERE r.user_id=profiles.id AND m.user_id=auth.uid()));
